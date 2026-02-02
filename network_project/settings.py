@@ -10,7 +10,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-fallback-key-for-dev')
 
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", False).lower()=='true'
 
@@ -41,6 +40,32 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
+
+
+KAFKA_PRODUCER_CONFIG = {
+    'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092'),
+    'client.id': 'django-network-producer',
+    'acks': 'all',
+    'retries': 3,
+    'max.in.flight.requests.per.connection': 1,
+    'compression.type': 'snappy',
+    'linger.ms': 5,
+    'batch.size': 65536,
+}
+
+KAFKA_CONSUMER_CONFIG = {
+    'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092'),
+    'group.id': 'django-network-consumer-group',
+    'auto.offset.reset': 'earliest',
+    'enable.auto.commit': False,
+    'session.timeout.ms': 60000,
+    'max.poll.interval.ms': 300000,
+}
+
+KAFKA_TOPICS = {
+    'USER_CREATED': 'user-created',
+    'EQUIPMENT_CHANGED': 'equipment-changed',
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -119,3 +144,24 @@ USE_I18N = True
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
